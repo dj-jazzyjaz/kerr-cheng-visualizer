@@ -1,0 +1,50 @@
+Definitions  
+  Real T=1;  /* Maximal time interval between consecutive triggerings of the controller */  
+  Real A=1;  /* The robot accelerates with acceleration A */  
+  Real B=1;  /* The robot brakes with acceleration -B */  
+  
+  Real ox:x1=-5; /* Cartesian coordinate x of the obstacle */  
+  Real oy:y1=0; /* Cartesian coordinate y of the obstacle */
+  Real obr:r1=.2;
+  Real robr:r0=.5;
+                                                                                
+End.  
+  
+ProgramVariables  
+  Real t;  /* Elapsed time since the last controller triggering */  
+  Real x:x0=5;  /* Cartesian coordinate x of the robot */  
+  Real y:y0=0;  /* Cartesian coordinate y of the robot */  
+  Real v=0;  /* Linear velocity (ground speed) of the robot */  
+  Real a;  /* Linear acceleration of the robot */  
+End.  
+  
+Problem  
+  (  
+    /* Constant assumptions and initial conditions */  
+    (T > 0 & A > 0 & B > 0  ox = -5 & oy = 0) & v >= 0 &  
+    0.5*v^2/B < (x-ox)    
+     & x^2 + y^2 = r^2   
+      
+  )  
+  ->  
+  [  
+    {  
+      /* Robot controller */  
+      {  
+        {  
+          ?(  
+            /* When is it safe to accelerate? */  
+            0.5*(v+A*T)^2/B + 0.5*A*T^2 + v*T < (x-ox-obr-robr)  
+              
+          );  
+          a := A  
+        } ++ { a := -B }  
+      };  
+      /* Continuous dynamics */  
+      t:=0;
+      { x'=-v, v'=a, t'=1 & v >= 0 & t <= T }  
+    }*  
+    
+  ]  
+  (x>ox+robr+obr)  
+End.
